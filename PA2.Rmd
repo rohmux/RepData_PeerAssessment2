@@ -1,0 +1,49 @@
+---
+title: "PA2"
+author: "R. Omlin"
+date: "25. June 2018"
+output: html_document
+---
+
+# Storm events and its harmful impact on human and economic
+
+## Synopsis
+
+## Data Processing
+### Preparing the Environment
+This script has been created on a macOS High Sierra machine (64-bit). RStudio runs on version 1.1.453 and R on version 3.3.2 (64-bit).
+First i'm gonna make sure, that your machine uses the same language setting as there could be problems when running the script (especially when dealing with Weekdays). If you're on a windows machine, replace "en_US.UTF-8" with "English", Linux should work ok.
+```{r localize}
+Sys.setlocale("LC_ALL","en_US.UTF-8")
+Sys.setenv(TZ="Europe/Zurich")
+```
+
+I had also the need to set the timezone to avoid error messages (i think this can be adapted to your needs).
+```{r timezone}
+Sys.setenv(TZ="Europe/Zurich")
+```
+I asume you already installed 'ggplot2' otherwise install it with 'install.packages("ggplot2")' and load it with.
+```{r ggplots}
+library(ggplot2)
+```
+
+### Loading the data
+Now the environment should be ready for the rest of the script and we can start downloading the data from the internet using this Chunk.
+```{r downloading}
+datafilename <- "StormData.csv.bz2" 
+datasource <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+if(!file.exists(datafilename))
+{
+  download.file(datasource, datafilename, mode="wb")
+}
+```
+
+This will download the activity.zip file into the working directory. The url used is stored in the variable datasource.
+While the file is zipped, it will be unzipped in a variable called temp and then read with the 'read.csv()' function in a data frame named 'df'
+```{r loading, cache=TRUE}
+df <- read.csv(datafilename)
+```
+
+### Processing the data
+
+## Results
