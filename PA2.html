@@ -123,31 +123,29 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">PA2</h1>
 <h4 class="author"><em>R. Omlin</em></h4>
-<h4 class="date"><em><ol start="25" style="list-style-type: decimal">
-<li>June 2018</li>
-</ol></em></h4>
+<h4 class="date"><em>2018-06-26 18:36:17</em></h4>
 
 </div>
 
 
-<div id="storm-events-and-its-harmful-impact-on-human-or-economic" class="section level1">
-<h1>Storm events and its harmful impact on human or economic</h1>
+<div id="storm-events-and-its-harmful-impact-on-human-and-economic" class="section level1">
+<h1>Storm events and its harmful impact on human and economic</h1>
 <div id="synopsis" class="section level2">
 <h2>Synopsis</h2>
+<p>In this document i will analyze what storm events will do harm the most to humans. I will also have a look to the highest economical effects of the events across the states. The data used is downloaded from the NOAA Storm Database using following url: ‘<a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2">https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2</a>’. The dataset it self is a collection of all events start in the year 1950 and end in November 2011.</p>
+</div>
+<div id="preparing-the-environment" class="section level2">
+<h2>Preparing the Environment</h2>
+<p>This script has been created on a macOS High Sierra machine (64-bit). RStudio runs on version 1.1.453 and R on version 3.3.2 (64-bit). First i’m gonna make sure, that your machine uses the same language setting as there may be problems when running the script with different locale. If you’re on a windows machine, replace “en_US.UTF-8” with “English”, Linux should work ok.</p>
+<pre class="r"><code>Sys.setlocale(&quot;LC_ALL&quot;,&quot;en_US.UTF-8&quot;)</code></pre>
+<pre><code>## [1] &quot;en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/de_CH.UTF-8&quot;</code></pre>
+<p>I had also the need to set the timezone to avoid error messages (i think this can be adapted to your needs).</p>
+<pre class="r"><code>Sys.setenv(TZ=&quot;Europe/Zurich&quot;)</code></pre>
+<p>I asume you already installed ‘ggplot2’ otherwise install it with ‘install.packages(“ggplot2”)’ and load it with following chunk.</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
 </div>
 <div id="data-processing" class="section level2">
 <h2>Data Processing</h2>
-<div id="preparing-the-environment" class="section level3">
-<h3>Preparing the Environment</h3>
-<p>This script has been created on a macOS High Sierra machine (64-bit). RStudio runs on version 1.1.453 and R on version 3.3.2 (64-bit). First i’m gonna make sure, that your machine uses the same language setting as there could be problems when running the script (especially when dealing with Weekdays). If you’re on a windows machine, replace “en_US.UTF-8” with “English”, Linux should work ok.</p>
-<pre class="r"><code>Sys.setlocale(&quot;LC_ALL&quot;,&quot;en_US.UTF-8&quot;)</code></pre>
-<pre><code>## [1] &quot;en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/de_CH.UTF-8&quot;</code></pre>
-<pre class="r"><code>Sys.setenv(TZ=&quot;Europe/Zurich&quot;)</code></pre>
-<p>I had also the need to set the timezone to avoid error messages (i think this can be adapted to your needs).</p>
-<pre class="r"><code>Sys.setenv(TZ=&quot;Europe/Zurich&quot;)</code></pre>
-<p>I asume you already installed ‘ggplot2’ otherwise install it with ‘install.packages(“ggplot2”)’ and load it with.</p>
-<pre class="r"><code>library(ggplot2)</code></pre>
-</div>
 <div id="loading-the-data" class="section level3">
 <h3>Loading the data</h3>
 <p>Now the environment should be ready for the rest of the script and we can start downloading the data from the internet using this Chunk.</p>
@@ -160,8 +158,23 @@ if(!file.exists(datafilename))
 <p>This will download the activity.zip file into the working directory. The url used is stored in the variable datasource. While the file is zipped, it will be unzipped in a variable called temp and then read with the ‘read.csv()’ function in a data frame named ‘df’</p>
 <pre class="r"><code>df &lt;- read.csv(datafilename)</code></pre>
 </div>
-<div id="processing-the-data" class="section level3">
-<h3>Processing the data</h3>
+<div id="preparing-the-data-for-human-harm" class="section level3">
+<h3>Preparing the data for ‘human harm’</h3>
+<p>At First i will aggregate the sum of injuries and fatalities grouped by the event type.</p>
+<pre class="r"><code>sumInjEvt &lt;- aggregate(df$INJURIES, by = list(df$EVTYPE), FUN = sum)
+sumFatEvt &lt;- aggregate(df$FATALITIES, by = list(df$EVTYPE), FUN = sum)</code></pre>
+<p>Then remove all events with an occurences smaller than 10 (we want to concentrate on the high values), do it for INJURIES and FATALITIES as these or what we are interested in to analyze the harm of events to humans.</p>
+<pre class="r"><code>dfInj &lt;- sumInjEvt[which(sumInjEvt$x &gt; 9),]
+dfFat &lt;- sumFatEvt[which(sumFatEvt$x &gt; 9),]</code></pre>
+</div>
+<div id="preparing-the-data-for-economical-consequencies" class="section level3">
+<h3>Preparing the data for ‘economical consequencies’</h3>
+<p>At First i will calculate the amount of property damage with its exponent ‘PROPDMGEXP’ and stored it back to ‘PROPDMG’.</p>
+<pre class="r"><code>df$PROPDMG &lt;- ifelse(df$PROPDMGEXP == &quot;B&quot;, df$PROPDMG*1000000000, ifelse(df$PROPDMGEXP == &quot;M&quot;, df$PROPDMG*1000000, ifelse(df$PROPDMGEXP == &quot;K&quot;, df$PROPDMG*1000, df$PROPDMG)))</code></pre>
+<p>Now aggregate the sum of the property damage grouped by the event type.</p>
+<pre class="r"><code>sumPropEvt &lt;- aggregate(df$PROPDMG, by = list(df$EVTYPE), FUN = sum)</code></pre>
+<p>Then remove all events with an occurences smaller than 1000 (we want to concentrate on the high values), as these or what we are interested in to analyze the economical consequencies of events.</p>
+<pre class="r"><code>dfProp &lt;- sumPropEvt[which(sumPropEvt$x &gt; 999),]</code></pre>
 </div>
 </div>
 <div id="results" class="section level2">

@@ -1,32 +1,33 @@
 ---
 title: "PA2"
 author: "R. Omlin"
-date: "25. June 2018"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
 # Storm events and its harmful impact on human and economic
 
 ## Synopsis
+In this document i will analyze what storm events will do harm the most to humans. I will also have a look to the highest economical effects of the events across the states.
+The data used is downloaded from the NOAA Storm Database using following url:  'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'. The dataset it self is a collection of all events start in the year 1950 and end in November 2011.
 
-## Data Processing
-### Preparing the Environment
+## Preparing the Environment
 This script has been created on a macOS High Sierra machine (64-bit). RStudio runs on version 1.1.453 and R on version 3.3.2 (64-bit).
-First i'm gonna make sure, that your machine uses the same language setting as there could be problems when running the script (especially when dealing with Weekdays). If you're on a windows machine, replace "en_US.UTF-8" with "English", Linux should work ok.
+First i'm gonna make sure, that your machine uses the same language setting as there may be problems when running the script with different locale. If you're on a windows machine, replace "en_US.UTF-8" with "English", Linux should work ok.
 ```{r localize}
 Sys.setlocale("LC_ALL","en_US.UTF-8")
-Sys.setenv(TZ="Europe/Zurich")
 ```
 
 I had also the need to set the timezone to avoid error messages (i think this can be adapted to your needs).
 ```{r timezone}
 Sys.setenv(TZ="Europe/Zurich")
 ```
-I asume you already installed 'ggplot2' otherwise install it with 'install.packages("ggplot2")' and load it with.
+I asume you already installed 'ggplot2' otherwise install it with 'install.packages("ggplot2")' and load it with following chunk.
 ```{r ggplots}
 library(ggplot2)
 ```
 
+## Data Processing
 ### Loading the data
 Now the environment should be ready for the rest of the script and we can start downloading the data from the internet using this Chunk.
 ```{r downloading}
@@ -44,6 +45,32 @@ While the file is zipped, it will be unzipped in a variable called temp and then
 df <- read.csv(datafilename)
 ```
 
-### Processing the data
+### Preparing the data for 'human harm'
+At First i will aggregate the sum of injuries and fatalities grouped by the event type.
+```{r aggregatsum}
+sumInjEvt <- aggregate(df$INJURIES, by = list(df$EVTYPE), FUN = sum)
+sumFatEvt <- aggregate(df$FATALITIES, by = list(df$EVTYPE), FUN = sum)
+```
 
+Then remove all events with an occurences smaller than 10 (we want to concentrate on the high values), do it for INJURIES and FATALITIES as these or what we are interested in to analyze the harm of events to humans.
+```{r cleaning10}
+dfInj <- sumInjEvt[which(sumInjEvt$x > 9),]
+dfFat <- sumFatEvt[which(sumFatEvt$x > 9),]
+```
+
+### Preparing the data for 'economical consequencies'
+At First i will calculate the amount of property damage with its exponent 'PROPDMGEXP' and stored it back to 'PROPDMG'.
+```{r calcPropDamage}
+df$PROPDMG <- ifelse(df$PROPDMGEXP == "B", df$PROPDMG*1000000000, ifelse(df$PROPDMGEXP == "M", df$PROPDMG*1000000, ifelse(df$PROPDMGEXP == "K", df$PROPDMG*1000, df$PROPDMG)))
+```
+
+Now aggregate the sum of the property damage grouped by the event type.
+```{r aggregatPropSum}
+sumPropEvt <- aggregate(df$PROPDMG, by = list(df$EVTYPE), FUN = sum)
+```
+
+Then remove all events with an occurences smaller than 1000 (we want to concentrate on the high values), as these or what we are interested in to analyze the economical consequencies of events.
+```{r cleaning1000}
+dfProp <- sumPropEvt[which(sumPropEvt$x > 999),]
+```
 ## Results
